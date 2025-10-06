@@ -84,8 +84,11 @@ class AdapTS:
     
     def _compute_coverage(self, true_values, predictions):
         covered = 0
+        total = 0
         for y_true, pred in zip(true_values, predictions):
-            within = np.all((y_true >= pred['lower']) & (y_true <= pred['upper']))
-            if within:
-                covered += 1
-        return covered / len(true_values) if len(true_values) > 0 else 0.0
+        # Check each timestep individually, not all at once
+            for i in range(len(y_true)):
+                if pred['lower'][i] <= y_true[i] <= pred['upper'][i]:
+                    covered += 1
+                total += 1
+        return covered / total if total > 0 else 0.0

@@ -18,7 +18,7 @@ class ConformalPredictor:
         if len(self.residuals) < 5:
             return 1.0
         residuals_array = np.array(self.residuals)
-        quantile = np.quantile(residuals_array, 1 - self.alpha)
+        quantile = np.quantile(residuals_array, self.alpha)
         return quantile
     
     def predict_interval(self, point_forecast: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
