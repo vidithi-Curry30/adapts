@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import os
 from adapts.data import TimeSeriesDataLoader
 from adapts.models import BaselineFM
 from adapts.models import AdapTSForecaster
@@ -15,8 +16,12 @@ print("="*70)
 TEST_TICKERS = ['GOOGL', 'MSFT', 'WMT', 'COST', 'USO', 'CVX', 'UNH']
 
 # Load trained FM
+# Get the script's directory to construct absolute path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(script_dir, 'trained_fm_focused.pth')
+
 fm = BaselineFM(input_dim=1, hidden_dim=128, num_layers=2, pred_len=24)
-fm.load_state_dict(torch.load('trained_fm_focused.pth'))
+fm.load_state_dict(torch.load(model_path))
 
 # Store results for all datasets
 all_results = {}
