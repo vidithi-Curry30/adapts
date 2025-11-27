@@ -270,8 +270,8 @@ plt.tight_layout()
 plt.savefig('width_comparison_all_datasets.png', dpi=300, bbox_inches='tight')
 print("✓ Saved: width_comparison_all_datasets.png")
 
-# Plot 3: Summary bar charts
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+# Plot 3: Summary bar charts with MAE and RMSE
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
 # Coverage summary
 tickers_list = list(all_results.keys())
@@ -311,6 +311,40 @@ ax2.set_xticks(x)
 ax2.set_xticklabels(tickers_list, rotation=45, ha='right')
 ax2.legend()
 ax2.grid(True, alpha=0.3, axis='y')
+
+# MAE summary
+fm_maes = [all_results[t]['fm_conf']['avg_mae'] for t in tickers_list]
+adapts_maes = [all_results[t]['adapts_conf']['avg_mae'] for t in tickers_list]
+full_maes = [all_results[t]['full_adapts']['avg_mae'] for t in tickers_list]
+
+ax3.bar(x - width, fm_maes, width, label='FM+Conf', alpha=0.8, color='skyblue')
+ax3.bar(x, adapts_maes, width, label='AdapTS+Conf', alpha=0.8, color='lightcoral')
+ax3.bar(x + width, full_maes, width, label='FM+AdapTS+Conf', alpha=0.8, color='lightgreen')
+
+ax3.set_xlabel('Dataset', fontsize=11)
+ax3.set_ylabel('Average MAE', fontsize=11)
+ax3.set_title('Average MAE by Method', fontsize=12, fontweight='bold')
+ax3.set_xticks(x)
+ax3.set_xticklabels(tickers_list, rotation=45, ha='right')
+ax3.legend()
+ax3.grid(True, alpha=0.3, axis='y')
+
+# RMSE summary
+fm_rmses = [all_results[t]['fm_conf']['avg_rmse'] for t in tickers_list]
+adapts_rmses = [all_results[t]['adapts_conf']['avg_rmse'] for t in tickers_list]
+full_rmses = [all_results[t]['full_adapts']['avg_rmse'] for t in tickers_list]
+
+ax4.bar(x - width, fm_rmses, width, label='FM+Conf', alpha=0.8, color='skyblue')
+ax4.bar(x, adapts_rmses, width, label='AdapTS+Conf', alpha=0.8, color='lightcoral')
+ax4.bar(x + width, full_rmses, width, label='FM+AdapTS+Conf', alpha=0.8, color='lightgreen')
+
+ax4.set_xlabel('Dataset', fontsize=11)
+ax4.set_ylabel('Average RMSE', fontsize=11)
+ax4.set_title('Average RMSE by Method', fontsize=12, fontweight='bold')
+ax4.set_xticks(x)
+ax4.set_xticklabels(tickers_list, rotation=45, ha='right')
+ax4.legend()
+ax4.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
 plt.savefig('summary_comparison.png', dpi=300, bbox_inches='tight')
