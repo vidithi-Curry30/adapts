@@ -6,6 +6,7 @@ from adapts.data import TimeSeriesDataLoader
 from adapts.models import BaselineFM
 from adapts.models import AdapTSForecaster
 from adapts.uncertainty import ConformalPredictor
+from adapts.metrics import TimeSeriesMetrics
 from collections import deque
 
 print("="*70)
@@ -49,6 +50,8 @@ for ticker in TEST_TICKERS:
     fm_conf = ConformalPredictor(alpha=0.1, calibration_size=200)
     fm_coverages = []
     fm_widths = []
+    fm_mae_list = []
+    fm_rmse_list = []
     fm_predictions = []
     
     for i in range(len(test_data) - seq_len - pred_len):
@@ -65,17 +68,16 @@ for ticker in TEST_TICKERS:
         fm_conf.update_residuals(y_true, pred)
         
         # Calculate metrics
-        covered = sum(1 for j in range(len(y_true)) 
-                     if result['lower'][j] <= y_true[j] <= result['upper'][j])
-        coverage = covered / len(y_true)
-        width = np.mean(result['upper'] - result['lower'])
-        
-        fm_coverages.append(coverage)
-        fm_widths.append(width)
+        fm_coverages.append(TimeSeriesMetrics.coverage(y_true, result['lower'], result['upper']))
+        fm_widths.append(TimeSeriesMetrics.interval_width(result['lower'], result['upper']))
+        fm_mae_list.append(TimeSeriesMetrics.mae(y_true, pred))
+        fm_rmse_list.append(TimeSeriesMetrics.rmse(y_true, pred))
         fm_predictions.append(result)
     
     print(f"   Avg Coverage: {np.mean(fm_coverages)*100:.1f}%")
     print(f"   Avg Width: {np.mean(fm_widths):.4f}")
+    print(f"   Avg MAE: {np.mean(fm_mae_list):.4f}")
+    print(f"   Avg RMSE: {np.mean(fm_rmse_list):.4f}")
     
     # ========================================================================
     # METHOD 2: AdapTS + Conformal (No FM in final prediction)
@@ -86,6 +88,8 @@ for ticker in TEST_TICKERS:
     adapts_conf = ConformalPredictor(alpha=0.1, calibration_size=200)
     adapts_coverages = []
     adapts_widths = []
+    adapts_mae_list = []
+    adapts_rmse_list = []
     adapts_predictions = []
     
     for i in range(len(test_data) - seq_len - pred_len):
@@ -103,17 +107,16 @@ for ticker in TEST_TICKERS:
         adapts_conf.update_residuals(y_true, pred)
         
         # Calculate metrics
-        covered = sum(1 for j in range(len(y_true)) 
-                     if result['lower'][j] <= y_true[j] <= result['upper'][j])
-        coverage = covered / len(y_true)
-        width = np.mean(result['upper'] - result['lower'])
-        
-        adapts_coverages.append(coverage)
-        adapts_widths.append(width)
+        adapts_coverages.append(TimeSeriesMetrics.coverage(y_true, result['lower'], result['upper']))
+        adapts_widths.append(TimeSeriesMetrics.interval_width(result['lower'], result['upper']))
+        adapts_mae_list.append(TimeSeriesMetrics.mae(y_true, pred))
+        adapts_rmse_list.append(TimeSeriesMetrics.rmse(y_true, pred))
         adapts_predictions.append(result)
     
     print(f"   Avg Coverage: {np.mean(adapts_coverages)*100:.1f}%")
     print(f"   Avg Width: {np.mean(adapts_widths):.4f}")
+    print(f"   Avg MAE: {np.mean(adapts_mae_list):.4f}")
+    print(f"   Avg RMSE: {np.mean(adapts_rmse_list):.4f}")
     
     # ========================================================================
     # METHOD 3: FM + AdapTS + Conformal (Full System)
@@ -138,6 +141,8 @@ for ticker in TEST_TICKERS:
     
     full_coverages = []
     full_widths = []
+    full_mae_list = []
+    full_rmse_list = []
     full_predictions = []
     
     for i in range(len(test_data) - seq_len - pred_len):
@@ -151,37 +156,48 @@ for ticker in TEST_TICKERS:
         full_adapts.update(x, y_true)
         
         # Calculate metrics
-        covered = sum(1 for j in range(len(y_true)) 
-                     if result['lower'][j] <= y_true[j] <= result['upper'][j])
-        coverage = covered / len(y_true)
-        width = np.mean(result['upper'] - result['lower'])
-        
-        full_coverages.append(coverage)
-        full_widths.append(width)
+        full_coverages.append(TimeSeriesMetrics.coverage(y_true, result['lower'], result['upper']))
+        full_widths.append(TimeSeriesMetrics.interval_width(result['lower'], result['upper']))
+        full_mae_list.append(TimeSeriesMetrics.mae(y_true, result['prediction']))
+        full_rmse_list.append(TimeSeriesMetrics.rmse(y_true, result['prediction']))
         full_predictions.append(result)
     
     print(f"   Avg Coverage: {np.mean(full_coverages)*100:.1f}%")
     print(f"   Avg Width: {np.mean(full_widths):.4f}")
+    print(f"   Avg MAE: {np.mean(full_mae_list):.4f}")
+    print(f"   Avg RMSE: {np.mean(full_rmse_list):.4f}")
     
     # Store results
     all_results[ticker] = {
         'fm_conf': {
             'coverages': fm_coverages,
             'widths': fm_widths,
+            'mae_list': fm_mae_list,
+            'rmse_list': fm_rmse_list,
             'avg_coverage': np.mean(fm_coverages),
-            'avg_width': np.mean(fm_widths)
+            'avg_width': np.mean(fm_widths),
+            'avg_mae': np.mean(fm_mae_list),
+            'avg_rmse': np.mean(fm_rmse_list)
         },
         'adapts_conf': {
             'coverages': adapts_coverages,
             'widths': adapts_widths,
+            'mae_list': adapts_mae_list,
+            'rmse_list': adapts_rmse_list,
             'avg_coverage': np.mean(adapts_coverages),
-            'avg_width': np.mean(adapts_widths)
+            'avg_width': np.mean(adapts_widths),
+            'avg_mae': np.mean(adapts_mae_list),
+            'avg_rmse': np.mean(adapts_rmse_list)
         },
         'full_adapts': {
             'coverages': full_coverages,
             'widths': full_widths,
+            'mae_list': full_mae_list,
+            'rmse_list': full_rmse_list,
             'avg_coverage': np.mean(full_coverages),
-            'avg_width': np.mean(full_widths)
+            'avg_width': np.mean(full_widths),
+            'avg_mae': np.mean(full_mae_list),
+            'avg_rmse': np.mean(full_rmse_list)
         }
     }
 
@@ -308,15 +324,15 @@ print(f"\n{'='*70}")
 print("SUMMARY RESULTS")
 print(f"{'='*70}\n")
 
-print(f"{'Dataset':<8} {'Method':<20} {'Avg Coverage':<15} {'Avg Width':<12}")
-print("-" * 70)
+print(f"{'Dataset':<8} {'Method':<20} {'Avg Coverage':<15} {'Avg Width':<12} {'Avg MAE':<12} {'Avg RMSE':<12}")
+print("-" * 95)
 
 for ticker in tickers_list:
     res = all_results[ticker]
-    print(f"{ticker:<8} FM+Conf            {res['fm_conf']['avg_coverage']*100:>6.1f}%         {res['fm_conf']['avg_width']:>8.4f}")
-    print(f"{'':8} AdapTS+Conf         {res['adapts_conf']['avg_coverage']*100:>6.1f}%         {res['adapts_conf']['avg_width']:>8.4f}")
-    print(f"{'':8} FM+AdapTS+Conf      {res['full_adapts']['avg_coverage']*100:>6.1f}%         {res['full_adapts']['avg_width']:>8.4f}")
-    print("-" * 70)
+    print(f"{ticker:<8} FM+Conf            {res['fm_conf']['avg_coverage']*100:>6.1f}%         {res['fm_conf']['avg_width']:>8.4f}     {res['fm_conf']['avg_mae']:>8.4f}     {res['fm_conf']['avg_rmse']:>8.4f}")
+    print(f"{'':8} AdapTS+Conf         {res['adapts_conf']['avg_coverage']*100:>6.1f}%         {res['adapts_conf']['avg_width']:>8.4f}     {res['adapts_conf']['avg_mae']:>8.4f}     {res['adapts_conf']['avg_rmse']:>8.4f}")
+    print(f"{'':8} FM+AdapTS+Conf      {res['full_adapts']['avg_coverage']*100:>6.1f}%         {res['full_adapts']['avg_width']:>8.4f}     {res['full_adapts']['avg_mae']:>8.4f}     {res['full_adapts']['avg_rmse']:>8.4f}")
+    print("-" * 95)
 
 print("\n✓ Analysis complete!")
 print("\nGenerated files:")
