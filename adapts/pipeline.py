@@ -3,6 +3,7 @@ from typing import Dict, Optional
 from .models.forecaster import AdapTSForecaster
 from .ensemble.weighter import AdapTSWeighter
 from .uncertainty.conformal import ConformalPredictor
+from .metrics import TimeSeriesMetrics
 
 
 class AdapTS:
@@ -20,7 +21,8 @@ class AdapTS:
         self.metrics = {
             'fm_weights': [],
             'adapts_weights': [],
-            'errors': []
+            'mae_errors': [],
+            'rmse_errors': []
         }
     
     def predict(self, x: np.ndarray, return_components: bool = False) -> Dict:
@@ -47,10 +49,11 @@ class AdapTS:
         self.forecaster.update(x, y_true)
         self.weighter.update_residuals(y_true, fm_pred, adapts_pred)
         self.conformal.update_residuals(y_true, combined_pred)
-        
+
         self.metrics['fm_weights'].append(self.weighter.fm_weight)
         self.metrics['adapts_weights'].append(self.weighter.adapts_weight)
-        self.metrics['errors'].append(np.mean(np.abs(y_true - combined_pred)))
+        self.metrics['mae_errors'].append(TimeSeriesMetrics.mae(y_true, combined_pred))
+        self.metrics['rmse_errors'].append(TimeSeriesMetrics.rmse(y_true, combined_pred))
     
     def evaluate_online(self, test_data: np.ndarray, verbose: bool = True):
         predictions = []
@@ -71,16 +74,27 @@ class AdapTS:
             if verbose and (i + 1) % 20 == 0:
                 print(f"  Step {i+1}/{n_steps}")
         
-        mae = np.mean([np.mean(np.abs(t - p['prediction'])) 
-                      for t, p in zip(true_values, predictions)])
+        mae_list = [TimeSeriesMetrics.mae(t, p['prediction'])
+                    for t, p in zip(true_values, predictions)]
+        rmse_list = [TimeSeriesMetrics.rmse(t, p['prediction'])
+                     for t, p in zip(true_values, predictions)]
+        mae = np.mean(mae_list)
+        rmse = np.mean(rmse_list)
         coverage = self._compute_coverage(true_values, predictions)
-        
+
         if verbose:
             print(f"\nResults:")
             print(f"  MAE: {mae:.4f}")
+            print(f"  RMSE: {rmse:.4f}")
             print(f"  Coverage: {coverage*100:.1f}%")
-        
-        return {'mae': mae, 'coverage': coverage, 'predictions': predictions, 'true_values': true_values}
+
+        return {
+            'mae': mae,
+            'rmse': rmse,
+            'coverage': coverage,
+            'predictions': predictions,
+            'true_values': true_values
+        }
     
     def _compute_coverage(self, true_values, predictions):
         covered = 0
