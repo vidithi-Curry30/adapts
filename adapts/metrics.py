@@ -177,4 +177,8 @@ def evaluate_forecasts(true_values: List[np.ndarray],
         results['interval_width'] = float(np.mean(width_values))
         results['interval_width_std'] = float(np.std(width_values))
 
+<<<<<<< HEAD
     return results
+=======
+    return results
+>>>>>>> 2c5b864d712ab2174962d6cbbc8585b86a6a6c04
