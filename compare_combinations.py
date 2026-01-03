@@ -270,7 +270,65 @@ plt.tight_layout()
 plt.savefig('width_comparison_all_datasets.png', dpi=300, bbox_inches='tight')
 print("✓ Saved: width_comparison_all_datasets.png")
 
-# Plot 3: Summary bar charts with MAE and RMSE
+# Plot 3: MAE over time
+fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+
+for idx, ticker in enumerate(TEST_TICKERS):
+    row = idx // 4
+    col = idx % 4
+
+    ax = axes[row, col]
+
+    res = all_results[ticker]
+    timesteps = range(len(res['fm_conf']['mae_list']))
+
+    ax.plot(timesteps, res['fm_conf']['mae_list'],
+            label='FM+Conf', alpha=0.7, linewidth=1.5)
+    ax.plot(timesteps, res['adapts_conf']['mae_list'],
+            label='AdapTS+Conf', alpha=0.7, linewidth=1.5)
+    ax.plot(timesteps, res['full_adapts']['mae_list'],
+            label='FM+AdapTS+Conf', alpha=0.7, linewidth=1.5)
+
+    ax.set_xlabel('Timestep', fontsize=9)
+    ax.set_ylabel('MAE', fontsize=9)
+    ax.set_title(f'{ticker} - MAE Over Time', fontsize=10, fontweight='bold')
+    ax.legend(fontsize=7, loc='best')
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('mae_comparison_all_datasets.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: mae_comparison_all_datasets.png")
+
+# Plot 4: RMSE over time
+fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+
+for idx, ticker in enumerate(TEST_TICKERS):
+    row = idx // 4
+    col = idx % 4
+
+    ax = axes[row, col]
+
+    res = all_results[ticker]
+    timesteps = range(len(res['fm_conf']['rmse_list']))
+
+    ax.plot(timesteps, res['fm_conf']['rmse_list'],
+            label='FM+Conf', alpha=0.7, linewidth=1.5)
+    ax.plot(timesteps, res['adapts_conf']['rmse_list'],
+            label='AdapTS+Conf', alpha=0.7, linewidth=1.5)
+    ax.plot(timesteps, res['full_adapts']['rmse_list'],
+            label='FM+AdapTS+Conf', alpha=0.7, linewidth=1.5)
+
+    ax.set_xlabel('Timestep', fontsize=9)
+    ax.set_ylabel('RMSE', fontsize=9)
+    ax.set_title(f'{ticker} - RMSE Over Time', fontsize=10, fontweight='bold')
+    ax.legend(fontsize=7, loc='best')
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('rmse_comparison_all_datasets.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: rmse_comparison_all_datasets.png")
+
+# Plot 5: Summary bar charts with MAE and RMSE
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
 # Coverage summary
@@ -372,4 +430,6 @@ print("\n✓ Analysis complete!")
 print("\nGenerated files:")
 print("  - coverage_comparison_all_datasets.png")
 print("  - width_comparison_all_datasets.png")
+print("  - mae_comparison_all_datasets.png")
+print("  - rmse_comparison_all_datasets.png")
 print("  - summary_comparison.png")
