@@ -32,8 +32,8 @@ for ticker in TEST_TICKERS:
     print(f"Processing {ticker}...")
     print(f"{'='*70}")
     
-    # Load data
-    loader = TimeSeriesDataLoader(source='stock')
+    # Load data (use all data for evaluation with split_ratio=0.0)
+    loader = TimeSeriesDataLoader(source='stock', split_ratio=0.0)
     train_data, test_data = loader.load(ticker=ticker, start='2015-01-01', end='2024-01-01')
     
     seq_len = 96

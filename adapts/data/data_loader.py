@@ -8,8 +8,9 @@ warnings.filterwarnings('ignore')
 
 
 class TimeSeriesDataLoader:
-    def __init__(self, source: str = 'stock'):
+    def __init__(self, source: str = 'stock', split_ratio: float = 0.8):
         self.source = source
+        self.split_ratio = split_ratio
         self.scaler = StandardScaler()
         
     def load_stock_data(self, ticker: str = 'AAPL', start: str = '2020-01-01',
@@ -35,12 +36,17 @@ class TimeSeriesDataLoader:
         else:
             raise ValueError(f"Unknown source: {self.source}")
         
-        split_idx = int(len(data) * 0.8)
+        split_idx = int(len(data) * self.split_ratio)
         train_data = data[:split_idx]
         test_data = data[split_idx:]
-        
-        self.scaler.fit(train_data)
-        train_normalized = self.scaler.transform(train_data)
+
+        # Fit scaler on train data, or on all data if no train split
+        if len(train_data) > 0:
+            self.scaler.fit(train_data)
+        else:
+            self.scaler.fit(data)
+
+        train_normalized = self.scaler.transform(train_data) if len(train_data) > 0 else train_data
         test_normalized = self.scaler.transform(test_data)
         
         return train_normalized.flatten(), test_normalized.flatten()
