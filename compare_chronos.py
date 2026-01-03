@@ -254,7 +254,61 @@ plt.tight_layout()
 plt.savefig('chronos_width_comparison.png', dpi=300, bbox_inches='tight')
 print("✓ Saved: chronos_width_comparison.png")
 
-# Plot 3: Summary bar charts with MAE and RMSE
+# Plot 3: MAE over time
+fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+
+for idx, ticker in enumerate(TEST_TICKERS):
+    row = idx // 4
+    col = idx % 4
+
+    ax = axes[row, col]
+
+    res = all_results[ticker]
+    timesteps = range(len(res['chronos_conf']['mae_list']))
+
+    ax.plot(timesteps, res['chronos_conf']['mae_list'],
+            label='Chronos+Conf', alpha=0.7, linewidth=1.5, color='skyblue')
+    ax.plot(timesteps, res['chronos_adapts']['mae_list'],
+            label='Chronos+AdapTS+Conf', alpha=0.7, linewidth=1.5, color='lightgreen')
+
+    ax.set_xlabel('Timestep', fontsize=9)
+    ax.set_ylabel('MAE', fontsize=9)
+    ax.set_title(f'{ticker} - MAE Over Time', fontsize=10, fontweight='bold')
+    ax.legend(fontsize=7, loc='best')
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('chronos_mae_comparison.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: chronos_mae_comparison.png")
+
+# Plot 4: RMSE over time
+fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+
+for idx, ticker in enumerate(TEST_TICKERS):
+    row = idx // 4
+    col = idx % 4
+
+    ax = axes[row, col]
+
+    res = all_results[ticker]
+    timesteps = range(len(res['chronos_conf']['rmse_list']))
+
+    ax.plot(timesteps, res['chronos_conf']['rmse_list'],
+            label='Chronos+Conf', alpha=0.7, linewidth=1.5, color='skyblue')
+    ax.plot(timesteps, res['chronos_adapts']['rmse_list'],
+            label='Chronos+AdapTS+Conf', alpha=0.7, linewidth=1.5, color='lightgreen')
+
+    ax.set_xlabel('Timestep', fontsize=9)
+    ax.set_ylabel('RMSE', fontsize=9)
+    ax.set_title(f'{ticker} - RMSE Over Time', fontsize=10, fontweight='bold')
+    ax.legend(fontsize=7, loc='best')
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('chronos_rmse_comparison.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: chronos_rmse_comparison.png")
+
+# Plot 5: Summary bar charts with MAE and RMSE
 fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
 # Coverage summary
@@ -347,4 +401,6 @@ print("\n✓ Analysis complete!")
 print("\nGenerated files:")
 print("  - chronos_coverage_comparison.png")
 print("  - chronos_width_comparison.png")
+print("  - chronos_mae_comparison.png")
+print("  - chronos_rmse_comparison.png")
 print("  - chronos_summary_comparison.png")
