@@ -36,9 +36,6 @@ for ticker in TEST_TICKERS:
     loader = TimeSeriesDataLoader(source='stock')
     train_data, test_data = loader.load(ticker=ticker, start='2015-01-01', end='2024-01-01')
     
-    # Limit test data for speed
-    test_data = test_data[:400]
-    
     seq_len = 96
     pred_len = 24
     
